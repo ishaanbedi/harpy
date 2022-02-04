@@ -27,13 +27,6 @@ Future<void> defaultOnMediaDownload({
     final filename = filenameFromUrl(url);
 
     if (filename != null) {
-      final notifier = ValueNotifier<DownloadStatus>(
-        DownloadStatus(
-          message: 'downloading ${type.name}...',
-          state: DownloadState.inProgress,
-        ),
-      );
-
       final storagePermission = await Permission.storage.request();
 
       if (!storagePermission.isGranted) {
@@ -58,37 +51,11 @@ Future<void> defaultOnMediaDownload({
         );
       }
 
-      if (selection == null) {
-        return;
+      if (selection != null) {
+        await app<DownloadService>()
+            .download(url: url, name: selection.name, path: selection.path)
+            .handleError(silentErrorHandler);
       }
-
-      app<MessageService>().showCustom(
-        SnackBar(
-          content: DownloadStatusMessage(notifier: notifier),
-          duration: const Duration(seconds: 15),
-        ),
-      );
-
-      await app<DownloadService>()
-          .download(
-            url: url,
-            name: selection.name,
-            path: selection.path,
-            onSuccess: (path) => notifier.value = DownloadStatus(
-              message: '${type.name} saved in\n$path',
-              state: DownloadState.successful,
-            ),
-            onFailure: () => notifier.value = const DownloadStatus(
-              message: 'download failed',
-              state: DownloadState.failed,
-            ),
-          )
-          .handleError(silentErrorHandler);
-
-      // hide snack bar shortly after download finished (assuming it's
-      // still showing)
-      await Future<void>.delayed(const Duration(seconds: 4));
-      app<MessageService>().messageState.state.hideCurrentSnackBar();
     }
   }
 }

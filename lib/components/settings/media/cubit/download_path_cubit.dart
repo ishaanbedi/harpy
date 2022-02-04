@@ -49,7 +49,7 @@ class DownloadPathCubit extends Cubit<DownloadPathState> with HarpyLogger {
 
         emit(DownloadPathState.data(mediaPaths: mediaPaths, entries: entries));
       } catch (e, st) {
-        log.severe('error decoding downloda path data', e, st);
+        log.severe('error decoding download path data', e, st);
 
         // reset saved preferences and use default
 
